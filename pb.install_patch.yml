@@ -1,0 +1,28 @@
+---
+- name: Setup Databases
+  hosts: db
+  gather_facts: no
+  vars:
+    patch_file: patch.tar
+    patch_folder: /var/lib/pgsql
+  tasks:    
+    - name: Extract the file to the correct location
+      unarchive:
+        src: "{{ patch_file }}"
+        dest: "{{ patch_folder }}"
+        # create: yes
+        copy: yes
+        # remote_src: yes
+      become_user: postgres
+      become: yes
+    
+    - name: Execute the patch
+      command: ./patch.sh
+      args:
+        chdir: "{{ patch_folder }}/patch_files"
+      register: patch_output
+      become_user: postgres
+      become: yes
+    
+    - name: Output patch Results
+      debug: var=patch_output

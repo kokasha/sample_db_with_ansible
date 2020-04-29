@@ -1,0 +1,7 @@
+_pb.*
+patch.tar
+Vagrantfile
+roles/
+group_vars/
+host_vars/
+.vagrant

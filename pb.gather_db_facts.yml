@@ -1,0 +1,35 @@
+- name: Setup Databases
+  hosts: db
+  gather_facts: no
+  vars:
+    ansible_user: vagrant
+    ansible_ssh_private_key_file: ".vagrant/machines/{{ inventory_hostname }}/virtualbox/private_key"
+  tasks:
+    # to get multiple columns
+    # psql -l | cut -d "|" -f 1,2,3 | tail -n +4 | sed '/^[[:space:]]*$/d' | grep -v rows | awk '{$1=$1};1' | grep -v "|$"
+    - name: Get existing Dabases
+      shell: psql -l | cut -d "|" -f 1  | tail -n +4 | sed '/^[[:space:]]*$/d' | grep -v rows | awk '{$1=$1};1'
+      become_user: postgres
+      become: yes
+      register: all_dbs
+
+    - name: fact | Build DB data
+      set_fact:
+        existing_databases: "{{ all_dbs.stdout_lines }}"
+      delegate_to: localhost
+
+    - name: Create host_vars
+      delegate_to: localhost
+      file:
+        path: "host_vars/{{ inventory_hostname }}"
+        state: directory
+
+    - name: Populate Existing DBs
+      blockinfile:
+        block: |
+          dbs:
+          {{ existing_databases | to_nice_yaml }}
+        create: yes
+        path: "host_vars/{{ inventory_hostname }}/dbs.yml"
+      when: existing_databases != []
+      delegate_to: localhost 

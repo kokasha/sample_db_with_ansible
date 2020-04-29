@@ -1,0 +1,7 @@
+[db]
+db1 ansible_host=172.20.100.20
+db2 ansible_host=172.20.100.21
+
+[ci]
+jenkins ansible_host=172.20.100.20
+

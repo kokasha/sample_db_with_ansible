@@ -1,0 +1,39 @@
+- name: Setup Databases
+  hosts: db
+  gather_facts: no
+  become: yes
+  become_user: postgres
+  # vars:
+  #   custom_db: CRM
+  tasks:
+    # - name: Validate POSTGRES is working
+    #   service_facts:
+
+    # - debug: var=ansible_facts.services
+
+    # - name: Validate Postgres is Working
+    #   assert:
+    #     that:
+    #       - ansible_facts.services['postgresql.service'].state == 'running'
+
+    - name: Validate Service using CLI
+      command: systemctl status postgresql
+      register: check_psql
+      failed_when: "'ActiBe: active' not in check_psql.stdout"
+      ignore_errors: yes
+    
+    - debug: var=check_psql
+
+    - name: set Environment Variables
+      shell: |
+        DB_ANSIBLE={{ item }};DB_AGAIN=NO
+        echo $DB_ANSIBLE
+        echo $DB_AGAIN
+      loop: "{{ dbs }}"
+      #ignore_errors: yes
+      register: db_env_output
+
+    - debug: var=db_env_output
+    
+
+      
